@@ -1,0 +1,238 @@
+package core.renderables;
+
+import core.assets.CoreSounds;
+import core.rendering_api.Window;
+import core.settings.CoreFloatSettings;
+import core.sound.Sound;
+
+import org.joml.Vector2f;
+import org.joml.Vector2i;
+
+import java.util.ArrayList;
+
+public class Renderable {
+
+    public Renderable(Vector2f sizeToParent, Vector2f offsetToParent) {
+        this.sizeToParent = new Vector2f(sizeToParent);
+        this.offsetToParent = new Vector2f(offsetToParent);
+    }
+
+    public void scaleForFocused(Vector2f position, Vector2f size) {
+        float dx = (size.x - size.x * scalingFactor) * 0.5F;
+        float dy = (size.y - size.y * scalingFactor) * 0.5F;
+
+        size.mul(scalingFactor);
+        position.add(dx, dy);
+    }
+
+    public final void render(Vector2f parentPosition, Vector2f parentSize) {
+        if (!isVisible()) return;
+        Vector2f thisSize = new Vector2f(parentSize.x, parentSize.y).mul(sizeToParent);
+        Vector2f thisPosition = new Vector2f(
+                parentPosition.x + parentSize.x * offsetToParent.x,
+                parentPosition.y + parentSize.y * offsetToParent.y);
+        if (isFocused() && allowsFocusScaling()) scaleForFocused(thisPosition, thisSize);
+
+        renderSelf(thisPosition, thisSize);
+        for (Renderable child : children) child.render(thisPosition, thisSize);
+    }
+
+    public final void resize(Vector2i size, float parentSizeX, float parentSizeY) {
+        float sizeX = parentSizeX * sizeToParent.x;
+        float sizeY = parentSizeY * sizeToParent.y;
+        resizeSelfTo((int) (size.x * sizeX), (int) (size.y * sizeY));
+        for (Renderable child : children) child.resize(size, sizeX, sizeY);
+    }
+
+    public final void delete() {
+        deleteSelf();
+        for (Renderable renderable : children) renderable.delete();
+    }
+
+    public void addRenderable(Renderable renderable) {
+        children.add(renderable);
+        renderable.parent = this;
+    }
+
+    public Renderable removeRenderable(Renderable renderable) {
+        return children.remove(renderable) && renderable != null ? renderable : DummyRenderable.dummy;
+    }
+
+    public boolean clickOn(Vector2i pixelCoordinate, int mouseButton, int action) {
+        for (Renderable renderable : children)
+            if (renderable.isVisible() && renderable.containsPixelCoordinate(pixelCoordinate) && renderable.clickOn(pixelCoordinate, mouseButton, action))
+                return true;
+        return false;
+    }
+
+    public boolean scrollOn(Vector2i pixelCoordinate, double xScroll, double yScroll) {
+        for (Renderable renderable : children)
+            if (renderable.isVisible() && renderable.containsPixelCoordinate(pixelCoordinate) && renderable.scrollOn(pixelCoordinate, xScroll, yScroll))
+                return true;
+        return false;
+    }
+
+    public void hoverOver(Vector2i pixelCoordinate) {
+        if (isFocused()) return;
+        for (Renderable renderable : children)
+            renderable.setFocused(renderable.containsPixelCoordinate(pixelCoordinate));
+    }
+
+    public void dragOver(Vector2i pixelCoordinate) {
+        hoverOver(pixelCoordinate);
+        for (Renderable renderable : children)
+            if (renderable.isVisible() && renderable.containsPixelCoordinate(pixelCoordinate)) renderable.dragOver(pixelCoordinate);
+    }
+
+    public void move(Vector2f offset) {
+        offsetToParent.add(offset);
+    }
+
+    public boolean containsPixelCoordinate(Vector2i pixelCoordinate) {
+        Vector2f position = getPosition(), size = getSize();
+        if (isFocused()) scaleForFocused(position, size);
+
+        position = Window.toPixelCoordinate(position, scalesWithGuiSize());
+        size = Window.toPixelSize(size, scalesWithGuiSize());
+
+        return position.x <= pixelCoordinate.x && position.x + size.x >= pixelCoordinate.x && position.y <= pixelCoordinate.y && position.y + size.y >= pixelCoordinate.y;
+    }
+
+
+    // Override if needed
+    protected void renderSelf(Vector2f position, Vector2f size) {
+
+    }
+
+    // Override if needed
+    protected void resizeSelfTo(int width, int height) {
+
+    }
+
+    // Override if needed
+    protected void deleteSelf() {
+
+    }
+
+    // Override if needed
+    public void setOnTop() {
+
+    }
+
+    public float getAspectRatio() {
+        Vector2f size = getSize();
+        return size.x / size.y;
+    }
+
+    public Vector2f getPosition() {
+        return parent.getPosition().add(parent.getSize().mul(offsetToParent));
+    }
+
+    public Vector2f getSize() {
+        return parent.getSize().mul(sizeToParent);
+    }
+
+    public Vector2f getOffsetToParent() {
+        return offsetToParent;
+    }
+
+    public Vector2f getSizeToParent() {
+        return sizeToParent;
+    }
+
+    public ArrayList<Renderable> getChildren() {
+        return children;
+    }
+
+    @SuppressWarnings("unchecked")
+    public <T extends Renderable> T firstChildOf(Class<T> type) {
+        for (Renderable child : children) if (type.isInstance(child)) return (T) child;
+        return null;
+    }
+
+    public Renderable getParent() {
+        return parent;
+    }
+
+    public void setOffsetToParent(float x, float y) {
+        this.offsetToParent.set(x, y);
+    }
+
+    public void setSizeToParent(float x, float y) {
+        this.sizeToParent.set(x, y);
+    }
+
+    public boolean isVisible() {
+        return isFlag(VISIBILITY_MASK);
+    }
+
+    public boolean isFocused() {
+        return isFlag(FOCUSSED_MASK);
+    }
+
+    public boolean allowsFocusScaling() {
+        return isFlag(DO_AUTO_FOCUS_SCALING);
+    }
+
+    public boolean scalesWithGuiSize() {
+        return isFlag(SCALES_WITH_GUI_SIZE_MASK) && parent.scalesWithGuiSize();
+    }
+
+    public void setPlayFocusSound(boolean playFocusSound) {
+        setFlag(playFocusSound, PLAY_FOCUS_SOUNDS_MASK);
+    }
+
+    public void setScaleWithGuiSize(boolean scaleWithGuiSize) {
+        setFlag(scaleWithGuiSize, SCALES_WITH_GUI_SIZE_MASK);
+    }
+
+    public void setDoAutoFocusScaling(boolean allowScaling) {
+        setFlag(allowScaling, DO_AUTO_FOCUS_SCALING);
+        if (!isFlag(DO_AUTO_FOCUS_SCALING)) setFlag(false, FOCUSSED_MASK);
+    }
+
+    public void setVisible(boolean visible) {
+        setFlag(visible, VISIBILITY_MASK);
+    }
+
+    public void setFocused(boolean focused) {
+        if (!isVisible() || !isFlag(DO_AUTO_FOCUS_SCALING) || isFocused() == focused) return;
+
+        if (isFlag(PLAY_FOCUS_SOUNDS_MASK))
+            Sound.playUI(CoreSounds.BUTTON_SUCCESS, CoreFloatSettings.UI_AUDIO, 0.35F, 0.5F);
+
+        setFlag(focused, FOCUSSED_MASK);
+        if (isFocused()) return;
+        for (Renderable renderable : children) renderable.setFocused(false);
+    }
+
+    public void setScalingFactor(float scalingFactor) {
+        this.scalingFactor = scalingFactor;
+    }
+
+    public float getScalingFactor() {
+        return scalingFactor;
+    }
+
+    private boolean isFlag(int flagMask) {
+        return (flags & flagMask) == flagMask;
+    }
+
+    private void setFlag(boolean value, int mask) {
+        if (value) flags |= mask;
+        else flags &= ~mask;
+    }
+
+    private final ArrayList<Renderable> children = new ArrayList<>();
+    private final Vector2f sizeToParent;
+    private final Vector2f offsetToParent;
+    private Renderable parent = DummyRenderable.dummy;
+    private float scalingFactor = 1.05F;
+    private int flags = VISIBILITY_MASK | DO_AUTO_FOCUS_SCALING | SCALES_WITH_GUI_SIZE_MASK | PLAY_FOCUS_SOUNDS_MASK;
+
+    private static final int VISIBILITY_MASK = 0x1;
+    private static final int FOCUSSED_MASK = 0x2;
+    private static final int DO_AUTO_FOCUS_SCALING = 0x4;
+    private static final int SCALES_WITH_GUI_SIZE_MASK = 0x8;
+    private static final int PLAY_FOCUS_SOUNDS_MASK = 0x10;
+}
