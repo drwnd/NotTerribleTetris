@@ -35,7 +35,7 @@ public abstract class Shader implements Asset {
     }
 
     public void setUniform(String uniformName, Color color) {
-        glUniform3f(getUniform(uniformName), color.getRed() * 0.003921569F, color.getGreen() * 0.003921569F, color.getBlue() * 0.003921569F);
+        glUniform4f(getUniform(uniformName), color.getRed() * 0.003921569F, color.getGreen() * 0.003921569F, color.getBlue() * 0.003921569F, color.getAlpha() * 0.003921569F);
     }
 
     public void setUniform(String uniformName, boolean value) {

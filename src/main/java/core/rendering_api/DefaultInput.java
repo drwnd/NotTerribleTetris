@@ -39,5 +39,5 @@ public class DefaultInput extends Input {
 
     }
 
-    private final Renderable renderable;
+    protected final Renderable renderable;
 }

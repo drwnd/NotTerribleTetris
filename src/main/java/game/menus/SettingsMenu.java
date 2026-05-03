@@ -7,9 +7,21 @@ import core.settings.CoreKeySettings;
 import core.settings.CoreOptionSettings;
 import core.settings.CoreToggleSettings;
 
+import game.language.UiMessages;
+import game.settings.KeySettings;
+
 public final class SettingsMenu extends CoreSettingsRenderable {
 
     public SettingsMenu() {
+
+        addKeySelector(KeySettings.ROTATE, UiMessages.ROTATE);
+        addKeySelector(KeySettings.MOVE_DOWN, UiMessages.MOVE_DOWN);
+        addKeySelector(KeySettings.MOVE_HARD_DOWN, UiMessages.MOVE_HARD_DOWN);
+        addKeySelector(KeySettings.MOVE_LEFT, UiMessages.MOVE_LEFT);
+        addKeySelector(KeySettings.MOVE_RIGHT, UiMessages.MOVE_RIGHT);
+        addKeySelector(KeySettings.SWAP_HELD_PIECE, UiMessages.SWAP_HELD_PIECE);
+        addKeySelector(KeySettings.PAUSE, UiMessages.PAUSE);
+
         addSlider(CoreFloatSettings.GUI_SIZE, CoreSettingNames.GUI_SIZE);
         addSlider(CoreFloatSettings.SENSITIVITY, CoreSettingNames.SENSITIVITY);
         addSlider(CoreFloatSettings.TEXT_SIZE, CoreSettingNames.TEXT_SIZE);
