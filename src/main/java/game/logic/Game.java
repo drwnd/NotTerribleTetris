@@ -3,6 +3,7 @@ package game.logic;
 import game.menus.BlockRenderer;
 import game.menus.ParticleData;
 import game.menus.ScoreDisplay;
+import game.settings.IntSettings;
 
 import java.awt.*;
 import java.util.ArrayList;
@@ -10,8 +11,22 @@ import java.util.Arrays;
 
 public final class Game {
 
-    public static final int SIZE_X = 10;
-    public static final int SIZE_Y = 30;
+    public final int SIZE_X, SIZE_Y;
+
+    public static Game getInstance() {
+        return instance;
+    }
+
+    public static void createInstance() {
+        instance = new Game();
+    }
+
+    public static void createEmptyInstance() {
+        instance = new Game();
+        instance.running = false;
+        instance.activePiece = null;
+        Arrays.fill(instance.nextPieces, null);
+    }
 
     public static Color getPieceColor(PieceType piece) {
         return switch (piece) {
@@ -25,12 +40,10 @@ public final class Game {
         };
     }
 
-    public static void startGame() {
-        for (PieceType[] row : BOARD) Arrays.fill(row, null);
-        paused = false;
-        running = true;
-        canSwap = true;
-        clearedLines = 0;
+    private Game() {
+        SIZE_X = IntSettings.BOARD_SIZE_X.value();
+        SIZE_Y = IntSettings.BOARD_SIZE_Y.value();
+        BOARD = new PieceType[SIZE_Y][SIZE_X];
 
         nextPieces[0] = Piece.random();
         for (int index = 1; index < nextPieces.length; index++) {
@@ -38,21 +51,20 @@ public final class Game {
             nextPieces[index].move(0, 4 * index);
         }
 
-        heldPiece = null;
         activePiece = consumePiece();
         activePiece.move(SIZE_X / 2 - 1, SIZE_Y - 3);
     }
 
-    private static void stopGame() {
+    private void stopGame() {
         running = false;
         ScoreDisplay.getInstance().addScore(clearedLines);
     }
 
-    public static void pause() {
+    public void pause() {
         paused = !paused;
     }
 
-    public static void swapHeldPiece() {
+    public void swapHeldPiece() {
         if (!running || paused || !canSwap) return;
         if (heldPiece == null) heldPiece = consumePiece();
         Piece temp = heldPiece.copy();
@@ -62,35 +74,35 @@ public final class Game {
         canSwap = false;
     }
 
-    public static void moveLeft() {
+    public void moveLeft() {
         if (!running || paused) return;
         if (activePiece.canMoveLeft(BOARD)) activePiece.moveLeft();
     }
 
-    public static void moveRight() {
+    public void moveRight() {
         if (!running || paused) return;
         if (activePiece.canMoveRight(BOARD)) activePiece.moveRight();
     }
 
-    public static ArrayList<ParticleData> moveDown() {
+    public  ArrayList<ParticleData> moveDown() {
         if (!running || paused) return new ArrayList<>();
         if (activePiece.canDrop(BOARD)) activePiece.drop();
         else return solidifyPiece(activePiece);
         return new ArrayList<>();
     }
 
-    public static ArrayList<ParticleData> moveHardDown() {
+    public ArrayList<ParticleData> moveHardDown() {
         if (!running || paused) return new ArrayList<>();
         while (activePiece.canDrop(BOARD)) activePiece.drop();
         return solidifyPiece(activePiece);
     }
 
-    public static void rotateActivePiece() {
+    public void rotateActivePiece() {
         if (!running || paused) return;
         activePiece.rotate(BOARD);
     }
 
-    public static ArrayList<ParticleData> updateFrame(BlockRenderer gameScreen, BlockRenderer nextPieceScreen, BlockRenderer heldPieceScreen) {
+    public ArrayList<ParticleData> updateFrame(BlockRenderer gameScreen, BlockRenderer nextPieceScreen, BlockRenderer heldPieceScreen) {
         ArrayList<ParticleData> particles = new ArrayList<>();
         long time = System.nanoTime();
         if (time - lastTickTime > 200_000_000 && running && !paused) {
@@ -99,7 +111,7 @@ public final class Game {
         }
         gameScreen.renderBlocks(BOARD);
         if (activePiece != null) {
-            Piece droppedPiece = activePiece.clone();
+            Piece droppedPiece = activePiece.exactCopy();
             while (droppedPiece.canDrop(BOARD)) droppedPiece.drop();
             gameScreen.renderPiece(activePiece, SIZE_X, SIZE_Y, false);
             gameScreen.renderPiece(droppedPiece, SIZE_X, SIZE_Y, true);
@@ -109,22 +121,22 @@ public final class Game {
         return particles;
     }
 
-    public static boolean isRunning() {
+    public boolean isRunning() {
         return running;
     }
 
-    public static boolean isPaused() {
+    public boolean isPaused() {
         return paused;
     }
 
 
-    private static ArrayList<ParticleData> updateTick() {
+    private ArrayList<ParticleData> updateTick() {
         if (activePiece.canDrop(BOARD)) activePiece.drop();
         else return solidifyPiece(activePiece);
         return new ArrayList<>();
     }
 
-    private static ArrayList<ParticleData> solidifyPiece(Piece piece) {
+    private ArrayList<ParticleData> solidifyPiece(Piece piece) {
         canSwap = true;
         piece.solidify(BOARD);
 
@@ -149,7 +161,7 @@ public final class Game {
         return particles;
     }
 
-    private static Piece consumePiece() {
+    private Piece consumePiece() {
         Piece next = nextPieces[nextPieces.length - 1].copy();
         for (int index = nextPieces.length - 1; index >= 1; index--) {
             nextPieces[index] = nextPieces[index - 1];
@@ -159,27 +171,34 @@ public final class Game {
         return next;
     }
 
-    private static boolean isRowSolid(PieceType[] row) {
+    private boolean isRowSolid(PieceType[] row) {
         for (PieceType pieceType : row) if (pieceType == null) return false;
         return true;
     }
 
-    private static boolean isRowNonEmpty(PieceType[] row) {
+    private boolean isRowNonEmpty(PieceType[] row) {
         for (PieceType pieceType : row) if (pieceType != null) return true;
         return false;
     }
 
-    public static int getClearedLines() {
+    public int getClearedLines() {
         return clearedLines;
     }
 
-    private static final PieceType[][] BOARD = new PieceType[SIZE_Y][SIZE_X];
-    private static boolean running = false;
-    private static boolean paused = false;
-    private static boolean canSwap = false;
-    private static long lastTickTime = 0;
-    private static int clearedLines;
+    public boolean isEmptyGame() {
+        return activePiece == null;
+    }
 
-    private static Piece heldPiece, activePiece;
-    private static final Piece[] nextPieces = new Piece[5];
+    private final PieceType[][] BOARD;
+    private boolean running = true;
+    private boolean paused = false;
+    private boolean canSwap = true;
+    private long lastTickTime = 0;
+    private int clearedLines = 0;
+
+    private Piece heldPiece = null, activePiece;
+    private final Piece[] nextPieces = new Piece[5];
+
+    private static Game instance;
+
 }

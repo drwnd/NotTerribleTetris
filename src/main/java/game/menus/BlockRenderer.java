@@ -81,7 +81,7 @@ public class BlockRenderer extends Renderable {
         Vector2f blockSize = new Vector2f(size).div(blocks[0].length, blocks.length);
 
         for (int blockY = 0; blockY < blocks.length; blockY++)
-            for (int blockX = 0; blockX < blocks[blockX].length; blockX++) {
+            for (int blockX = 0; blockX < blocks[blockY].length; blockX++) {
                 PieceType piece = blocks[blockY][blockX];
                 if (piece == null) continue;
 

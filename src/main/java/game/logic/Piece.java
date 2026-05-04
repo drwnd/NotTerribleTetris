@@ -23,8 +23,7 @@ public final class Piece {
         return pieceType.newInstance();
     }
 
-    @Override
-    public Piece clone() {
+    public Piece exactCopy() {
         return new Piece(pieceType, new Vector2f(rotationCenter), new Block(block1), new Block(block2), new Block(block3), new Block(block4));
     }
 

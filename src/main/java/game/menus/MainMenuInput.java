@@ -15,13 +15,13 @@ public final class MainMenuInput extends DefaultInput {
 
     @Override
     public void keyCallback(long window, int key, int scancode, int action, int mods) {
-        if (action != GLFW_PRESS) return;
-        if (key == KeySettings.PAUSE.keybind()) Game.pause();
-        if (key == KeySettings.SWAP_HELD_PIECE.keybind()) Game.swapHeldPiece();
-        if (key == KeySettings.MOVE_LEFT.keybind()) Game.moveLeft();
-        if (key == KeySettings.MOVE_RIGHT.keybind()) Game.moveRight();
-        if (key == KeySettings.MOVE_DOWN.keybind()) ((MainMenu) renderable).spawnParticles(Game.moveDown());
-        if (key == KeySettings.MOVE_HARD_DOWN.keybind()) ((MainMenu) renderable).spawnParticles(Game.moveHardDown());
-        if (key == KeySettings.ROTATE.keybind()) Game.rotateActivePiece();
+        if (action != GLFW_PRESS && action != GLFW_REPEAT) return;
+        if (key == KeySettings.PAUSE.keybind()) Game.getInstance().pause();
+        if (key == KeySettings.SWAP_HELD_PIECE.keybind()) Game.getInstance().swapHeldPiece();
+        if (key == KeySettings.MOVE_LEFT.keybind()) Game.getInstance().moveLeft();
+        if (key == KeySettings.MOVE_RIGHT.keybind()) Game.getInstance().moveRight();
+        if (key == KeySettings.MOVE_DOWN.keybind()) ((MainMenu) renderable).spawnParticles(Game.getInstance().moveDown());
+        if (key == KeySettings.MOVE_HARD_DOWN.keybind()) ((MainMenu) renderable).spawnParticles(Game.getInstance().moveHardDown());
+        if (key == KeySettings.ROTATE.keybind()) Game.getInstance().rotateActivePiece();
     }
 }

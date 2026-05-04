@@ -13,7 +13,9 @@ public enum UiMessages implements Translatable {
     START_GAME,
     BEST_SCORE,
     RECENT_SCORES,
-    CURRENT_SCORE;
+    CURRENT_SCORE,
+    BOARD_SIZE_X,
+    BOARD_SIZE_Y;
 
     @Override
     public String translationFileName() {

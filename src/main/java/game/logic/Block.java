@@ -22,7 +22,7 @@ public final class Block extends Vector2i {
     }
 
     public boolean canMoveRight(PieceType[][] board) {
-        return x < Game.SIZE_X - 1 && board[y][x + 1] == null;
+        return x < Game.getInstance().SIZE_X - 1 && board[y][x + 1] == null;
     }
 
     public boolean canMoveLeft(PieceType[][] board) {
@@ -33,8 +33,8 @@ public final class Block extends Vector2i {
         int rotatedX = getRotatedX(rotationCenter);
         int rotatedY = getRotatedY(rotationCenter);
 
-        if (rotatedX < 0 || rotatedX >= Game.SIZE_X) return false;
-        if (rotatedY < 0 || rotatedY >= Game.SIZE_Y) return false;
+        if (rotatedX < 0 || rotatedX >= Game.getInstance().SIZE_X) return false;
+        if (rotatedY < 0 || rotatedY >= Game.getInstance().SIZE_Y) return false;
         return board[rotatedY][rotatedX] == null;
     }
 

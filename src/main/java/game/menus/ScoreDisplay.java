@@ -34,7 +34,7 @@ public final class ScoreDisplay extends BlockRenderer {
         getChildren().clear();
 
         addRenderable(new TextElement(new Vector2f(0.05F, 0.95F), () -> UiMessages.BEST_SCORE.get() + scoreBoard.best(), Color.RED));
-        addRenderable(new TextElement(new Vector2f(0.05F, 0.9F), () -> UiMessages.CURRENT_SCORE.get() + Game.getClearedLines(), Color.ORANGE));
+        addRenderable(new TextElement(new Vector2f(0.05F, 0.9F), () -> UiMessages.CURRENT_SCORE.get() + Game.getInstance().getClearedLines(), Color.ORANGE));
         addRenderable(new TextElement(new Vector2f(0.05F, 0.85F), UiMessages.RECENT_SCORES, Color.YELLOW));
 
         ArrayList<Integer> scores = scoreBoard.scores();

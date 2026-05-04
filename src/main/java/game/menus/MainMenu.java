@@ -30,6 +30,7 @@ public final class MainMenu extends UiBackgroundElement {
         UiButton newGameButton = new UiButton(sizeToParent, new Vector2f(0.05F, 0.6F), getNewGameAction());
         newGameButton.addRenderable(new TextElement(new Vector2f(0.05F, 0.5F), UiMessages.START_GAME));
 
+        Game.createEmptyInstance();
         addRenderable(gameScreen);
         addRenderable(nextPiecesScreen);
         addRenderable(heldPieceScreen);
@@ -47,7 +48,7 @@ public final class MainMenu extends UiBackgroundElement {
 
         Vector2f sizeToParent = new Vector2f(1.0F, 1.0F)
                 .sub(2 * rimThickness / Window.getAspectRatio(), 2 * rimThickness)
-                .div(Game.SIZE_X, Game.SIZE_Y);
+                .div(Game.getInstance().SIZE_X, Game.getInstance().SIZE_Y);
 
         for (ParticleData particle : particles) {
             Vector2f offsetToParent = new Vector2f(sizeToParent).mul(particle.blockX(), particle.blockY());
@@ -58,7 +59,7 @@ public final class MainMenu extends UiBackgroundElement {
     private Clickable getSettingsAction() {
         return (Vector2i _, int _, int action) -> {
             if (action != GLFW_PRESS) return ButtonResult.IGNORE;
-            if (Game.isRunning()) return ButtonResult.FAILURE;
+            if (Game.getInstance().isRunning() && !Game.getInstance().isPaused()) return ButtonResult.FAILURE;
             Window.pushRenderable(new SettingsMenu());
             return ButtonResult.SUCCESS;
         };
@@ -67,8 +68,9 @@ public final class MainMenu extends UiBackgroundElement {
     private Clickable getNewGameAction() {
         return (Vector2i _, int _, int action) -> {
             if (action != GLFW_PRESS) return ButtonResult.IGNORE;
-            if (Game.isRunning() && !Game.isPaused()) return ButtonResult.FAILURE;
-            Game.startGame();
+            if (Game.getInstance().isRunning() && !Game.getInstance().isPaused()) return ButtonResult.FAILURE;
+            Game.createInstance();
+            setUpScreens();
             return ButtonResult.SUCCESS;
         };
     }
@@ -76,7 +78,7 @@ public final class MainMenu extends UiBackgroundElement {
     @Override
     public void renderSelf(Vector2f position, Vector2f size) {
         super.renderSelf(position, size);
-        ArrayList<ParticleData> particles = Game.updateFrame(gameScreen, nextPiecesScreen, heldPieceScreen);
+        ArrayList<ParticleData> particles = Game.getInstance().updateFrame(gameScreen, nextPiecesScreen, heldPieceScreen);
         spawnParticles(particles);
 
         long time = System.nanoTime();
@@ -86,6 +88,10 @@ public final class MainMenu extends UiBackgroundElement {
     @Override
     public void setOnTop() {
         Window.setInput(new MainMenuInput(this));
+        if (Game.getInstance().isEmptyGame()) {
+            Game.createEmptyInstance();
+            setUpScreens();
+        }
     }
 
     @Override
@@ -103,7 +109,7 @@ public final class MainMenu extends UiBackgroundElement {
         float blockSizeX = 0.08F;
         float blockSizeY = 0.08F * aspectRatio;
 
-        gameScreen.setSizeToParent(0.95F / (3 * aspectRatio), 0.95F);
+        gameScreen.setSizeToParent(0.95F / (Game.getInstance().SIZE_Y * aspectRatio / Game.getInstance().SIZE_X), 0.95F);
         gameScreen.setOffsetToParent(0.5F - gameScreen.getSizeToParent().x * 0.5F, 0.025F);
 
         heldPieceScreen.setSizeToParent(blockSizeX, blockSizeY);
@@ -113,7 +119,7 @@ public final class MainMenu extends UiBackgroundElement {
         nextPiecesScreen.setOffsetToParent(gameScreen.getOffsetToParent().x + gameScreen.getSizeToParent().x + 0.025F, 0.925F - 6 * blockSizeY);
 
         scoreBoard.setSizeToParent(0.95F / (3 * aspectRatio), 0.95F);
-        scoreBoard.setOffsetToParent(0.95F - scoreBoard.getSizeToParent().x, 0.025F);
+        scoreBoard.setOffsetToParent(nextPiecesScreen.getOffsetToParent().x + nextPiecesScreen.getSizeToParent().x + 0.025F, 0.025F);
     }
 
     private final BlockRenderer gameScreen = new BlockRenderer(new Vector2f(), new Vector2f());

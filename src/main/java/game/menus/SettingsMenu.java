@@ -8,6 +8,7 @@ import core.settings.CoreOptionSettings;
 import core.settings.CoreToggleSettings;
 
 import game.language.UiMessages;
+import game.settings.IntSettings;
 import game.settings.KeySettings;
 
 public final class SettingsMenu extends CoreSettingsRenderable {
@@ -21,6 +22,8 @@ public final class SettingsMenu extends CoreSettingsRenderable {
         addKeySelector(KeySettings.MOVE_RIGHT, UiMessages.MOVE_RIGHT);
         addKeySelector(KeySettings.SWAP_HELD_PIECE, UiMessages.SWAP_HELD_PIECE);
         addKeySelector(KeySettings.PAUSE, UiMessages.PAUSE);
+        addSlider(IntSettings.BOARD_SIZE_X, UiMessages.BOARD_SIZE_X);
+        addSlider(IntSettings.BOARD_SIZE_Y, UiMessages.BOARD_SIZE_Y);
 
         addSlider(CoreFloatSettings.GUI_SIZE, CoreSettingNames.GUI_SIZE);
         addSlider(CoreFloatSettings.SENSITIVITY, CoreSettingNames.SENSITIVITY);
