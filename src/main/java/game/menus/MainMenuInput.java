@@ -21,7 +21,7 @@ public final class MainMenuInput extends DefaultInput {
         if (key == KeySettings.MOVE_LEFT.keybind()) Game.getInstance().moveLeft();
         if (key == KeySettings.MOVE_RIGHT.keybind()) Game.getInstance().moveRight();
         if (key == KeySettings.MOVE_DOWN.keybind()) ((MainMenu) renderable).spawnParticles(Game.getInstance().moveDown());
-        if (key == KeySettings.MOVE_HARD_DOWN.keybind()) ((MainMenu) renderable).spawnParticles(Game.getInstance().moveHardDown());
+        if (key == KeySettings.MOVE_HARD_DOWN.keybind() && action == GLFW_PRESS) ((MainMenu) renderable).spawnParticles(Game.getInstance().moveHardDown());
         if (key == KeySettings.ROTATE.keybind()) Game.getInstance().rotateActivePiece();
     }
 }

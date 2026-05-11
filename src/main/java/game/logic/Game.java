@@ -74,6 +74,11 @@ public final class Game {
         canSwap = false;
     }
 
+    public void saveScoreIfRunning() {
+        if (running) ScoreDisplay.getInstance().addScore(clearedLines);
+        ScoreDisplay.getInstance().save();
+    }
+
     public void moveLeft() {
         if (!running || paused) return;
         if (activePiece.canMoveLeft(BOARD)) activePiece.moveLeft();
@@ -84,7 +89,7 @@ public final class Game {
         if (activePiece.canMoveRight(BOARD)) activePiece.moveRight();
     }
 
-    public  ArrayList<ParticleData> moveDown() {
+    public ArrayList<ParticleData> moveDown() {
         if (!running || paused) return new ArrayList<>();
         if (activePiece.canDrop(BOARD)) activePiece.drop();
         else return solidifyPiece(activePiece);
@@ -117,7 +122,8 @@ public final class Game {
             gameScreen.renderPiece(droppedPiece, SIZE_X, SIZE_Y, true);
         }
         if (heldPiece != null) heldPieceScreen.renderPiece(heldPiece, 4, 4, false);
-        for (Piece nextPiece : nextPieces) if (nextPiece != null) nextPieceScreen.renderPiece(nextPiece, 4, 4 * 5, false);
+        for (Piece nextPiece : nextPieces)
+            if (nextPiece != null) nextPieceScreen.renderPiece(nextPiece, 4, 4 * 5, false);
         return particles;
     }
 
@@ -145,7 +151,8 @@ public final class Game {
 
         for (int row = SIZE_Y - 1; row >= 0; row--)
             if (isRowSolid(BOARD[row])) {
-                for (int index = 0; index < SIZE_X; index++) particles.add(new ParticleData(index, row, BOARD[row][index]));
+                for (int index = 0; index < SIZE_X; index++)
+                    particles.add(new ParticleData(index, row, BOARD[row][index]));
                 for (int index = row; index < SIZE_Y - 1; index++) BOARD[index] = BOARD[index + 1];
                 BOARD[SIZE_Y - 1] = new PieceType[SIZE_X];
                 clearCount++;

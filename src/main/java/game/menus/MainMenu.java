@@ -68,7 +68,7 @@ public final class MainMenu extends UiBackgroundElement {
     private Clickable getNewGameAction() {
         return (Vector2i _, int _, int action) -> {
             if (action != GLFW_PRESS) return ButtonResult.IGNORE;
-            if (Game.getInstance().isRunning() && !Game.getInstance().isPaused()) return ButtonResult.FAILURE;
+            if (Game.getInstance().isRunning()) return ButtonResult.FAILURE;
             Game.createInstance();
             setUpScreens();
             return ButtonResult.SUCCESS;
@@ -101,7 +101,7 @@ public final class MainMenu extends UiBackgroundElement {
 
     @Override
     public void deleteSelf() {
-        scoreBoard.save();
+
     }
 
     private void setUpScreens() {
